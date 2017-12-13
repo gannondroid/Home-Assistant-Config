@@ -1,0 +1,87 @@
+##########################
+# Sensors
+##########################
+
+- platform: speedtest
+  minute: 30
+  hour:
+    - 0
+    - 6
+    - 12
+    - 18
+  monitored_conditions:
+    - download
+    - upload
+
+binary_sensor:
+  - platform: rest
+    name: Travis Status
+    resource: https://api.travis-ci.org/repos/TribuneX/home_assistant/cc.json?branch=master
+    scan_interval: 60
+    value_template: "{{ value_json.last_build_status|int(1) == 0 }}"
+
+- platform: command_line
+  name: CPU Temperature
+  command: 'cat /sys/class/thermal/thermal_zone0/temp'
+  unit_of_measurement: '°C'
+  value_template: '{{ (value | multiply(0.001)) | round(1) }}'
+
+- platform: systemmonitor
+  resources:
+  - type: disk_use_percent
+    arg: /
+  - type: memory_free
+  - type: processor_use
+  - type: network_in
+    arg: eth0
+  - type: network_out
+    arg: eth0
+  - type: last_boot
+
+
+# - platform: yahoo_finance
+#   symbols:
+#     - AMZN
+#     - AAPL
+#     - STAG
+
+# Inspired by https://community.home-assistant.io/t/temp-compare/19497
+- platform: template
+  sensors:
+    out_vs_in:
+      value_template: "{{states.sensor.netatmo_outdoor_temperature.state | round(0) - states.sensor.netatmo_wohnzimmer_temperature.state | round(0)}}"
+      friendly_name: "Temperature Diff"
+
+# Inspired by https://community.home-assistant.io/t/0-46-1-not-available-via-upgrade/19539
+- platform: rest
+  resource: https://pypi.python.org/pypi/homeassistant/json
+  name: HA Current Version
+  value_template: '{{ value_json.info.version }}'
+  scan_interval: 3600
+
+sensor:
+  - platform: rest
+    name: Travis Status Label
+    resource: https://api.travis-ci.org/repos/TribuneX/home_assistant/cc.json?branch=master
+    scan_interval: 60
+    value_template: "{{ value_json.last_build_number }}"
+
+      plex:
+        friendly_name: 'Plex'
+        value_template: "{{ 'online' if is_state('device_tracker.plex', 'home') else 'off' }}"
+
+      switch:
+        friendly_name: 'Switch'
+        value_template: "{{ 'online' if is_state('device_tracker.switch', 'home') else 'off' }}"
+
+
+      server:
+        friendly_name: 'Server'
+        value_template: "{{ 'online' if is_state('device_tracker.server', 'home') else 'off' }}"
+
+
+ 
+
+
+  
+
